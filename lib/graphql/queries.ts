@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 
 export const GET_RECEIPTS = gql`
-  query GetReceipts {
-    receipts {
+  query GetReceipts($filter: ReceiptFilter) {
+    receipts(filter: $filter) {
       id
       storeName
       totalAmount

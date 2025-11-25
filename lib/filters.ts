@@ -1,4 +1,4 @@
-import { format, isAfter, isBefore, isWithinInterval, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 export interface Receipt {
     id: string;
@@ -21,55 +21,16 @@ export interface DateRange {
 }
 
 /**
- * Filter receipts by date range
+ * GraphQL filter input for server-side filtering
  */
-export function filterReceiptsByDateRange(
-    receipts: Receipt[],
-    dateRange: DateRange
-): Receipt[] {
-    if (!dateRange.from && !dateRange.to) return receipts;
-
-    return receipts.filter((receipt) => {
-        if (!receipt.purchaseDate) return false;
-
-        const receiptDate = parseISO(receipt.purchaseDate);
-
-        if (dateRange.from && dateRange.to) {
-            return isWithinInterval(receiptDate, {
-                start: dateRange.from,
-                end: dateRange.to,
-            });
-        }
-
-        if (dateRange.from) {
-            return isAfter(receiptDate, dateRange.from) || receiptDate.getTime() === dateRange.from.getTime();
-        }
-
-        if (dateRange.to) {
-            return isBefore(receiptDate, dateRange.to) || receiptDate.getTime() === dateRange.to.getTime();
-        }
-
-        return true;
-    });
+export interface ReceiptFilter {
+    storeName?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
 }
 
 /**
- * Filter receipts by store name
- */
-export function filterReceiptsByStore(
-    receipts: Receipt[],
-    storeName: string | null
-): Receipt[] {
-    if (!storeName || storeName === "all") return receipts;
-
-    return receipts.filter(
-        (receipt) =>
-            receipt.storeName?.toLowerCase().includes(storeName.toLowerCase())
-    );
-}
-
-/**
- * Get unique store names from receipts
+ * Get unique store names from receipts (kept for local UI purposes)
  */
 export function getUniqueStores(receipts: Receipt[]): string[] {
     const stores = receipts

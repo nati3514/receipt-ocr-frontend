@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useMutation } from "@apollo/client/react";
-import { Upload, FileImage, Loader2, CheckCircle2 } from "lucide-react";
+import { Upload, FileImage, Loader2, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -19,19 +19,32 @@ interface UploadReceiptData {
     };
 }
 
-export default function UploadZone() {
+interface UploadZoneProps {
+    onUploadComplete?: () => void;
+}
+
+export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
 
     const [uploadReceipt, { loading }] = useMutation<UploadReceiptData>(UPLOAD_RECEIPT, {
-        refetchQueries: [{ query: GET_RECEIPTS }],
+        refetchQueries: [
+            { query: GET_RECEIPTS, variables: { filter: {} } }, // Refetch all receipts
+            { query: GET_RECEIPTS }, // Also refetch with no variables
+        ],
+        awaitRefetchQueries: true, // Wait for refetch to complete
         onCompleted: (data) => {
             toast.success("Receipt uploaded successfully!", {
-                description: `Extracted data from ${data.uploadReceipt.storeName || "receipt"}`,
+                description: `${data.uploadReceipt.storeName || "Receipt"} - $${data.uploadReceipt.totalAmount?.toFixed(2) || "0.00"}`,
             });
             setFile(null);
             setPreview(null);
+
+            // Notify parent component
+            if (onUploadComplete) {
+                onUploadComplete();
+            }
         },
         onError: (error) => {
             toast.error("Upload failed", {
@@ -52,7 +65,6 @@ export default function UploadZone() {
 
         setFile(selectedFile);
 
-        // Create preview
         const reader = new FileReader();
         reader.onloadend = () => {
             setPreview(reader.result as string);
@@ -104,30 +116,29 @@ export default function UploadZone() {
     };
 
     return (
-        <Card className="border-2 border-dashed transition-colors hover:border-primary/50">
-            <CardContent className="p-8">
+        <Card className={cn(
+            "border-2 border-dashed transition-colors",
+            isDragging && "border-primary bg-primary/5"
+        )}>
+            <CardContent className="p-6">
                 <div
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     className={cn(
-                        "relative flex flex-col items-center justify-center gap-4 rounded-lg p-8 transition-all",
-                        isDragging && "bg-primary/5 scale-[1.02]",
-                        !file && "min-h-[300px]"
+                        "flex flex-col items-center justify-center gap-4 rounded-lg p-6",
+                        !file && "min-h-[200px]"
                     )}
                 >
                     {!file ? (
                         <>
-                            <div className="rounded-full bg-primary/10 p-4">
-                                <Upload className="h-10 w-10 text-primary" />
-                            </div>
+                            <Upload className="h-10 w-10 text-muted-foreground" />
                             <div className="text-center">
-                                <h3 className="text-lg font-semibold">Upload Receipt</h3>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Drag and drop your receipt image here, or click to browse
+                                <p className="text-sm font-medium">
+                                    Drag and drop or click to upload
                                 </p>
-                                <p className="mt-2 text-xs text-muted-foreground">
-                                    Supports: JPG, PNG, WebP (max 10MB)
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    JPG, PNG, WebP (max 10MB)
                                 </p>
                             </div>
                             <input
@@ -146,20 +157,20 @@ export default function UploadZone() {
                     ) : (
                         <div className="w-full space-y-4">
                             {preview && (
-                                <div className="relative mx-auto max-w-md overflow-hidden rounded-lg border">
+                                <div className="relative mx-auto max-w-xs overflow-hidden rounded-lg border">
                                     <img
                                         src={preview}
                                         alt="Receipt preview"
-                                        className="h-auto w-full object-contain"
+                                        className="h-auto w-full object-contain max-h-48"
                                     />
                                 </div>
                             )}
-                            <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4">
+                            <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-3">
                                 <div className="flex items-center gap-3">
-                                    <FileImage className="h-8 w-8 text-primary" />
+                                    <FileImage className="h-5 w-5 text-muted-foreground" />
                                     <div>
-                                        <p className="font-medium">{file.name}</p>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-sm font-medium">{file.name}</p>
+                                        <p className="text-xs text-muted-foreground">
                                             {formatFileSize(file.size)}
                                         </p>
                                     </div>
@@ -173,7 +184,7 @@ export default function UploadZone() {
                                             setPreview(null);
                                         }}
                                     >
-                                        Remove
+                                        <X className="h-4 w-4" />
                                     </Button>
                                 )}
                             </div>
@@ -181,7 +192,6 @@ export default function UploadZone() {
                                 onClick={handleUpload}
                                 disabled={loading}
                                 className="w-full"
-                                size="lg"
                             >
                                 {loading ? (
                                     <>
@@ -189,10 +199,7 @@ export default function UploadZone() {
                                         Processing...
                                     </>
                                 ) : (
-                                    <>
-                                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                                        Upload & Scan Receipt
-                                    </>
+                                    "Upload & Scan"
                                 )}
                             </Button>
                         </div>

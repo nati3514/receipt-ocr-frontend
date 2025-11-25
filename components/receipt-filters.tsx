@@ -48,19 +48,21 @@ export default function ReceiptFilters({
 
     return (
         <Card>
-            <CardContent className="p-6">
-                <div className="flex flex-wrap items-center gap-4">
+            <CardContent className="p-4">
+                <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2">
-                        <Filter className="h-5 w-5 text-muted-foreground" />
-                        <h3 className="font-semibold">Filters</h3>
+                        <Filter className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Filters</span>
                         {activeFilterCount > 0 && (
-                            <Badge variant="secondary">{activeFilterCount}</Badge>
+                            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                                {activeFilterCount}
+                            </Badge>
                         )}
                     </div>
 
-                    <div className="flex flex-1 flex-wrap items-center gap-3">
+                    <div className="flex flex-1 flex-wrap items-center gap-2">
                         {/* Store Filter */}
-                        <div className="flex-1 min-w-[200px]">
+                        <div className="min-w-[180px]">
                             <Label htmlFor="store-select" className="sr-only">
                                 Filter by store
                             </Label>
@@ -70,7 +72,7 @@ export default function ReceiptFilters({
                                     onStoreChange(value === "all" ? null : value)
                                 }
                             >
-                                <SelectTrigger id="store-select">
+                                <SelectTrigger id="store-select" className="h-9">
                                     <SelectValue placeholder="All Stores" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -90,7 +92,7 @@ export default function ReceiptFilters({
                                 <Button
                                     variant="outline"
                                     className={cn(
-                                        "min-w-[240px] justify-start text-left font-normal",
+                                        "min-w-[220px] justify-start text-left font-normal h-9",
                                         !dateRange.from && !dateRange.to && "text-muted-foreground"
                                     )}
                                 >
@@ -98,14 +100,14 @@ export default function ReceiptFilters({
                                     {dateRange.from ? (
                                         dateRange.to ? (
                                             <>
-                                                {format(dateRange.from, "MMM dd, yyyy")} -{" "}
+                                                {format(dateRange.from, "MMM dd")} -{" "}
                                                 {format(dateRange.to, "MMM dd, yyyy")}
                                             </>
                                         ) : (
                                             format(dateRange.from, "MMM dd, yyyy")
                                         )
                                     ) : (
-                                        <span>Pick a date range</span>
+                                        <span>Pick date range</span>
                                     )}
                                 </Button>
                             </PopoverTrigger>
@@ -135,9 +137,9 @@ export default function ReceiptFilters({
                                 variant="ghost"
                                 size="sm"
                                 onClick={onClearFilters}
-                                className="gap-1"
+                                className="h-9 px-2"
                             >
-                                <X className="h-4 w-4" />
+                                <X className="h-4 w-4 mr-1" />
                                 Clear
                             </Button>
                         )}

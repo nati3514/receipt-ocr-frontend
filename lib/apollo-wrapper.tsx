@@ -11,10 +11,11 @@ import {
     SSRMultipartLink,
 } from "@apollo/experimental-nextjs-app-support/ssr";
 import { createUploadLink } from "./upload-link";
+import { API_ENDPOINTS } from "./config/endpoints";
 
 function makeClient() {
     const uploadLink = createUploadLink({
-        uri: "http://localhost:4000/graphql",
+        uri: API_ENDPOINTS.GRAPHQL,
         headers: {
             "Apollo-Require-Preflight": "true",
         },
